@@ -28,9 +28,9 @@ class FlowGraphTests: XCTestCase {
             case bang
         }
         
-        let graph = FlowGraph<State, Event>(initial: .begin)
+        let builder = FlowGraphBuilder<State, Event>()
         
-        graph.add(state: .begin) { event in
+        builder.add(state: .begin) { event in
             switch event {
             case .value(let value):
                 if value == 0 {
@@ -43,7 +43,7 @@ class FlowGraphTests: XCTestCase {
             }
         }
         
-        graph.add(state: .zero) { event in
+        builder.add(state: .zero) { event in
             switch event {
             case .bang:
                 return .wait(.begin)
@@ -52,29 +52,31 @@ class FlowGraphTests: XCTestCase {
             }
         }
         
-        graph.add(state: .nonZero) { event in
+        builder.add(state: .nonZero) { event in
             return .wait(.begin)
         }
         
         for state in State.cases {
-            XCTAssertTrue(graph.contains(state: state))
+            XCTAssertTrue(builder.contains(state: state))
         }
         
-        XCTAssertEqual(graph.state, .begin)
-        
-        graph.send(event: .value(0))
-        
-        XCTAssertEqual(graph.state, .zero)
-        
-        graph.send(event: .value(0))
-        
-        XCTAssertEqual(graph.state, .zero)
-        
-        graph.send(event: .bang)
+        let graph = builder.build(initial: .begin)
         
         XCTAssertEqual(graph.state, .begin)
         
-        graph.send(event: .value(1))
+        graph.run(.value(0))
+        
+        XCTAssertEqual(graph.state, .zero)
+        
+        graph.run(.value(0))
+        
+        XCTAssertEqual(graph.state, .zero)
+        
+        graph.run(.bang)
+        
+        XCTAssertEqual(graph.state, .begin)
+        
+        graph.run(.value(1))
         
         XCTAssertEqual(graph.state, .begin)
     }
@@ -85,11 +87,11 @@ class FlowGraphTests: XCTestCase {
             case second
         }
         
-        let graph = FlowGraph<State, Int>(initial: .first)
+        let builder = FlowGraphBuilder<State, Int>()
         
-        graph.add(state: .first) { _ in .stay }
+        builder.add(state: .first) { _ in .stay }
         
-        XCTAssertTrue(graph.contains(state: .first))
-        XCTAssertFalse(graph.contains(state: .second))
+        XCTAssertTrue(builder.contains(state: .first))
+        XCTAssertFalse(builder.contains(state: .second))
     }
 }
