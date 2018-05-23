@@ -13,6 +13,9 @@ public enum FlowGraphStateOut<State, Event> {
 public class FlowGraphBuilder<State: Hashable, Event> {
     private var handlers: [State: (Event) -> FlowGraphStateOut<State, Event>] = [:]
     
+    public init() {
+    }
+    
     public func add(state: State, handler: @escaping (Event) -> FlowGraphStateOut<State, Event>) {
         if self.handlers[state] != nil {
             fatalError()
