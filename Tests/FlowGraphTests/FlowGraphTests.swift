@@ -1,12 +1,12 @@
 import XCTest
-@testable import SwiftFlowGraph
+@testable import FlowGraph
 
-final class SwiftFlowGraphTests: XCTestCase {
+final class FlowGraphTests: XCTestCase {
     func testExample() {
         // This is an example of a functional test case.
         // Use XCTAssert and related functions to verify your tests produce the correct
         // results.
-        XCTAssertEqual(SwiftFlowGraph().text, "Hello, World!")
+        XCTAssertEqual(FlowGraph().text, "Hello, World!")
     }
 
 

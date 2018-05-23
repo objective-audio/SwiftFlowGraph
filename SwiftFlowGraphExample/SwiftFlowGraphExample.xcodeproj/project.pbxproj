@@ -38,7 +38,7 @@
 		1AEB84B52091CE570092BCCC /* SwiftFlowGraphExampleTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwiftFlowGraphExampleTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1AEB84B92091CE570092BCCC /* FlowGraphTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowGraphTests.swift; sourceTree = "<group>"; };
 		1AEB84BB2091CE570092BCCC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		1AEB84C42091CEFE0092BCCC /* FlowGraph.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = FlowGraph.swift; path = ../../SwiftFlowGraph/FlowGraph.swift; sourceTree = "<group>"; };
+		1AEB84C42091CEFE0092BCCC /* FlowGraph.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = FlowGraph.swift; path = ../../FlowGraph/FlowGraph.swift; sourceTree = "<group>"; };
 		1AEB84C62091CF9F0092BCCC /* EnumEnumerable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EnumEnumerable.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 

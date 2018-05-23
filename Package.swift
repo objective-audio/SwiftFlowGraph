@@ -3,14 +3,14 @@
 import PackageDescription
 
 let package = Package(
-    name: "SwiftFlowGraph",
+    name: "FlowGraph",
     products: [
-        .library(name: "SwiftFlowGraph", targets: ["SwiftFlowGraph"]),
+        .library(name: "FlowGraph", targets: ["FlowGraph"]),
     ],
     dependencies: [
     ],
     targets: [
-        .target(name: "SwiftFlowGraph", dependencies: [], path: "SwiftFlowGraph"),
-        .testTarget(name: "SwiftFlowGraphTests", dependencies: ["SwiftFlowGraph"]),
+        .target(name: "FlowGraph", dependencies: [], path: "FlowGraph"),
+        .testTarget(name: "FlowGraphTests", dependencies: ["FlowGraph"]),
     ]
 )
