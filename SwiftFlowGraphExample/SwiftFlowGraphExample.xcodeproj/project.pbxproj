@@ -14,7 +14,6 @@
 		1AEB84AF2091CE570092BCCC /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1AEB84AD2091CE570092BCCC /* LaunchScreen.storyboard */; };
 		1AEB84BA2091CE570092BCCC /* FlowGraphTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AEB84B92091CE570092BCCC /* FlowGraphTests.swift */; };
 		1AEB84C52091CEFE0092BCCC /* FlowGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AEB84C42091CEFE0092BCCC /* FlowGraph.swift */; };
-		1AEB84C72091CF9F0092BCCC /* EnumEnumerable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AEB84C62091CF9F0092BCCC /* EnumEnumerable.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -39,7 +38,6 @@
 		1AEB84B92091CE570092BCCC /* FlowGraphTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowGraphTests.swift; sourceTree = "<group>"; };
 		1AEB84BB2091CE570092BCCC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		1AEB84C42091CEFE0092BCCC /* FlowGraph.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = FlowGraph.swift; path = ../../FlowGraph/FlowGraph.swift; sourceTree = "<group>"; };
-		1AEB84C62091CF9F0092BCCC /* EnumEnumerable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EnumEnumerable.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -95,7 +93,6 @@
 		1AEB84B82091CE570092BCCC /* SwiftFlowGraphExampleTests */ = {
 			isa = PBXGroup;
 			children = (
-				1AEB84C62091CF9F0092BCCC /* EnumEnumerable.swift */,
 				1AEB84B92091CE570092BCCC /* FlowGraphTests.swift */,
 				1AEB84BB2091CE570092BCCC /* Info.plist */,
 			);
@@ -213,7 +210,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1AEB84C72091CF9F0092BCCC /* EnumEnumerable.swift in Sources */,
 				1AEB84BA2091CE570092BCCC /* FlowGraphTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
