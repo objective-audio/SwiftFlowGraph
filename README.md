@@ -4,10 +4,13 @@
 
 ```swift
 class FlowObject {
-    enum State {
+    enum WaitingState {
         case a
-        case b
         case c
+    }
+
+    enum RunningState {
+        case b
     }
 
     enum EventName {
@@ -18,12 +21,12 @@ class FlowObject {
 
     typealias Event = (name: EventName, object: FlowObject)
 
-    let graph: FlowGraph<State, Event>
+    let graph: FlowGraph<WaitingState, RunningState, Event>
 
     init() {
-        let builder = FlowGraphBuilder<State, Event>()
+        let builder = FlowGraphBuilder<WaitingState, RunningState, Event>()
 
-        builder.add(state: .a) { event in
+        builder.add(waiting: .a) { event in
             switch event.name {
             case .bToC:
                 return .run(.b, event)
@@ -34,13 +37,13 @@ class FlowObject {
             }
         }
 
-        builder.add(state: .b) { event in
+        builder.add(running: .b) { event in
             event.object.log(text: "call b")
 
             return .wait(.c)
         }
 
-        builder.add(state: .c) { event in
+        builder.add(waiting: .c) { event in
             switch event.name {
             case .toA:
                 return .wait(.a)
