@@ -3,9 +3,12 @@ import XCTest
 
 final class FlowGraphTests: XCTestCase {
     func testFlow() {
-        enum State: EnumEnumerable {
+        enum WaitingState: EnumEnumerable {
             case begin
             case zero
+        }
+        
+        enum RunningState: EnumEnumerable {
             case nonZero
         }
         
@@ -15,9 +18,9 @@ final class FlowGraphTests: XCTestCase {
             case bang
         }
         
-        let builder = FlowGraphBuilder<State, Event>()
+        let builder = FlowGraphBuilder<WaitingState, RunningState, Event>()
         
-        builder.add(state: .begin) { event in
+        builder.add(waiting: .begin) { event in
             switch event {
             case .value(let value):
                 if value == 0 {
@@ -30,7 +33,7 @@ final class FlowGraphTests: XCTestCase {
             }
         }
         
-        builder.add(state: .zero) { event in
+        builder.add(waiting: .zero) { event in
             switch event {
             case .bang:
                 return .wait(.begin)
@@ -39,49 +42,61 @@ final class FlowGraphTests: XCTestCase {
             }
         }
         
-        builder.add(state: .nonZero) { event in
+        builder.add(running: .nonZero) { event in
             return .wait(.begin)
         }
         
-        for state in State.cases {
-            XCTAssertTrue(builder.contains(state: state))
+        for state in WaitingState.cases {
+            XCTAssertTrue(builder.contains(state: .waiting(state)))
+        }
+        
+        for state in RunningState.cases {
+            XCTAssertTrue(builder.contains(state: .running(state)))
         }
         
         let graph = builder.build(initial: .begin)
         
-        XCTAssertEqual(graph.state, .begin)
+        XCTAssertEqual(graph.state, .waiting(.begin))
         
         graph.run(.value(0))
         
-        XCTAssertEqual(graph.state, .zero)
+        XCTAssertEqual(graph.state, .waiting(.zero))
         
         graph.run(.value(0))
         
-        XCTAssertEqual(graph.state, .zero)
+        XCTAssertEqual(graph.state, .waiting(.zero))
         
         graph.run(.bang)
         
-        XCTAssertEqual(graph.state, .begin)
+        XCTAssertEqual(graph.state, .waiting(.begin))
         
         graph.run(.value(1))
         
-        XCTAssertEqual(graph.state, .begin)
+        XCTAssertEqual(graph.state, .waiting(.begin))
     }
     
     func testContains() {
-        enum State {
+        enum WaitingState {
             case first
             case second
         }
         
-        let builder = FlowGraphBuilder<State, Int>()
+        enum RunningState {
+            case first
+            case second
+        }
         
-        builder.add(state: .first) { _ in .stay }
+        let builder = FlowGraphBuilder<WaitingState, RunningState, Int>()
         
-        XCTAssertTrue(builder.contains(state: .first))
-        XCTAssertFalse(builder.contains(state: .second))
+        builder.add(waiting: .first) { _ in .stay }
+        builder.add(running: .second) { _ in .wait(.first) }
+        
+        XCTAssertTrue(builder.contains(state: .waiting(.first)))
+        XCTAssertFalse(builder.contains(state: .waiting(.second)))
+        XCTAssertFalse(builder.contains(state: .running(.first)))
+        XCTAssertTrue(builder.contains(state: .running(.second)))
     }
-
+    
     static var allTests = [
         ("testFlow", testFlow),
         ("testContains", testContains),
