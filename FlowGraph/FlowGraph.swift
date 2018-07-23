@@ -4,21 +4,10 @@
 
 import Foundation
 
-public enum FlowGraphWaitStateOut<WaitState, RunState, Event> {
-    case run(RunState, Event)
-    case wait(WaitState)
-    case stay
-}
-
-public enum FlowGraphRunStateOut<WaitState, RunState, Event> {
-    case run(RunState, Event)
-    case wait(WaitState)
-}
-
-public struct FlowGraphType<WaitState: Hashable, RunState: Hashable, Event> {
+public struct FlowGraphType<WaitingState: Hashable, RunningState: Hashable, Event> {
     public enum State: Equatable {
-        case running(RunState)
-        case waiting(WaitState)
+        case running(RunningState)
+        case waiting(WaitingState)
         
         public static func == (lhs: FlowGraphType.State, rhs: FlowGraphType.State) -> Bool {
             switch (lhs, rhs) {
@@ -32,64 +21,76 @@ public struct FlowGraphType<WaitState: Hashable, RunState: Hashable, Event> {
         }
     }
     
-    public typealias WaitStateOut = FlowGraphWaitStateOut<WaitState, RunState, Event>
-    public typealias WaitHandler = (Event) -> WaitStateOut
-    
-    public typealias RunStateOut = FlowGraphRunStateOut<WaitState, RunState, Event>
-    public typealias RunHandler = (Event) -> RunStateOut
-}
-
-public class FlowGraphBuilder<WaitState: Hashable, RunState: Hashable, Event> {
-    public typealias T = FlowGraphType<WaitState, RunState, Event>
-    
-    private var waitHandlers: [WaitState: T.WaitHandler] = [:]
-    private var runHandlers: [RunState: T.RunHandler] = [:]
-    
-    public init() {
+    public enum WaitingStateOut {
+        case run(RunningState, Event)
+        case wait(WaitingState)
+        case stay
     }
     
-    public func add(waiting state: WaitState, handler: @escaping T.WaitHandler) {
-        if self.waitHandlers[state] != nil {
+    public enum RunningStateOut {
+        case run(RunningState, Event)
+        case wait(WaitingState)
+    }
+    
+    public typealias WaitingHandler = (Event) -> WaitingStateOut
+    public typealias RunningHandler = (Event) -> RunningStateOut
+}
+
+public class FlowGraphBuilder<WaitingState: Hashable, RunningState: Hashable, Event> {
+    public typealias T = FlowGraphType<WaitingState, RunningState, Event>
+    
+    private var waitingHandlers: [WaitingState: T.WaitingHandler] = [:]
+    private var runningHandlers: [RunningState: T.RunningHandler] = [:]
+    
+    public init() {}
+    
+    public func add(waiting state: WaitingState, handler: @escaping T.WaitingHandler) {
+        if self.waitingHandlers[state] != nil {
             fatalError()
         }
         
-        self.waitHandlers[state] = handler
+        self.waitingHandlers[state] = handler
     }
     
-    public func add(running state: RunState, handler: @escaping T.RunHandler) {
-        if self.runHandlers[state] != nil {
+    public func add(running state: RunningState, handler: @escaping T.RunningHandler) {
+        if self.runningHandlers[state] != nil {
             fatalError()
         }
     
-        self.runHandlers[state] = handler
+        self.runningHandlers[state] = handler
     }
     
-    public func build(initial: WaitState) -> FlowGraph<WaitState, RunState, Event> {
-        return FlowGraph<WaitState, RunState, Event>(initial: initial, waitHandlers: self.waitHandlers, runHandlers: self.runHandlers)
+    public func build(initial: WaitingState) -> FlowGraph<WaitingState, RunningState, Event> {
+        return FlowGraph<WaitingState, RunningState, Event>(initial: initial,
+                                                            waitingHandlers: self.waitingHandlers,
+                                                            runningHandlers: self.runningHandlers)
     }
     
     public func contains(state: T.State) -> Bool {
         switch state {
-        case .waiting(let waitState):
-            return self.waitHandlers.contains { $0.key == waitState }
-        case .running(let runState):
-            return self.runHandlers.contains { $0.key == runState }
+        case .waiting(let state):
+            return self.waitingHandlers.contains { $0.key == state }
+        case .running(let state):
+            return self.runningHandlers.contains { $0.key == state }
         }
     }
 }
 
-public class FlowGraph<WaitState: Hashable, RunState: Hashable, Event> {
-    public typealias T = FlowGraphType<WaitState, RunState, Event>
+public class FlowGraph<WaitingState: Hashable, RunningState: Hashable, Event> {
+    public typealias T = FlowGraphType<WaitingState, RunningState, Event>
+    public typealias Builder = FlowGraphBuilder<WaitingState, RunningState, Event>
     
     public private(set) var state: T.State
-    private var waitHandlers: [WaitState: T.WaitHandler] = [:]
-    private var runHandlers: [RunState: T.RunHandler] = [:]
+    private var waitingHandlers: [WaitingState: T.WaitingHandler] = [:]
+    private var runningHandlers: [RunningState: T.RunningHandler] = [:]
     private var performing = false;
     
-    fileprivate init(initial: WaitState, waitHandlers: [WaitState: T.WaitHandler], runHandlers: [RunState: T.RunHandler]) {
+    fileprivate init(initial: WaitingState,
+                     waitingHandlers: [WaitingState: T.WaitingHandler],
+                     runningHandlers: [RunningState: T.RunningHandler]) {
         self.state = .waiting(initial)
-        self.waitHandlers = waitHandlers
-        self.runHandlers = runHandlers
+        self.waitingHandlers = waitingHandlers
+        self.runningHandlers = runningHandlers
     }
     
     public func run(_ event: Event) {
@@ -98,15 +99,15 @@ public class FlowGraph<WaitState: Hashable, RunState: Hashable, Event> {
             return
         }
         
-        self.run(state: waitingState, event: event)
+        self.run(waiting: waitingState, event: event)
     }
     
-    private func run(state: WaitState, event: Event) {
+    private func run(waiting state: WaitingState, event: Event) {
         if self.performing {
             fatalError()
         }
         
-        guard let handler = self.waitHandlers[state] else {
+        guard let handler = self.waitingHandlers[state] else {
             fatalError()
         }
         
@@ -119,7 +120,7 @@ public class FlowGraph<WaitState: Hashable, RunState: Hashable, Event> {
         switch next {
         case .run(let state, let event):
             self.state = .running(state)
-            self.run(state: state, event: event)
+            self.run(running: state, event: event)
         case .wait(let state):
             self.state = .waiting(state)
         case .stay:
@@ -127,12 +128,12 @@ public class FlowGraph<WaitState: Hashable, RunState: Hashable, Event> {
         }
     }
     
-    private func run(state: RunState, event: Event) {
+    private func run(running state: RunningState, event: Event) {
         if self.performing {
             fatalError()
         }
         
-        guard let handler = self.runHandlers[state] else {
+        guard let handler = self.runningHandlers[state] else {
             fatalError()
         }
         
@@ -145,7 +146,7 @@ public class FlowGraph<WaitState: Hashable, RunState: Hashable, Event> {
         switch next {
         case .run(let state, let event):
             self.state = .running(state)
-            self.run(state: state, event: event)
+            self.run(running: state, event: event)
         case .wait(let state):
             self.state = .waiting(state)
         }
