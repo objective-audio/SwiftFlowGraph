@@ -94,7 +94,8 @@ public class FlowGraph<WaitState: Hashable, RunState: Hashable, Event> {
     
     public func run(_ event: Event) {
         guard case .waiting(let waitingState) = self.state else {
-            fatalError()
+            print("Ignored an event because state is runnning.")
+            return
         }
         
         self.run(state: waitingState, event: event)
