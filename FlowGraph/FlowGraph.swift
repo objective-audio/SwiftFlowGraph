@@ -84,7 +84,7 @@ public class FlowGraph<WaitState: Hashable, RunState: Hashable, Event> {
     public private(set) var state: T.State
     private var waitHandlers: [WaitState: T.WaitHandler] = [:]
     private var runHandlers: [RunState: T.RunHandler] = [:]
-    private var running = false;
+    private var performing = false;
     
     fileprivate init(initial: WaitState, waitHandlers: [WaitState: T.WaitHandler], runHandlers: [RunState: T.RunHandler]) {
         self.state = .waiting(initial)
@@ -93,15 +93,16 @@ public class FlowGraph<WaitState: Hashable, RunState: Hashable, Event> {
     }
     
     public func run(_ event: Event) {
-        guard case .waiting(let waitState) = self.state else {
-            fatalError()
+        guard case .waiting(let waitingState) = self.state else {
+            print("Ignored an event because state is runnning.")
+            return
         }
         
-        self.run(state: waitState, event: event)
+        self.run(state: waitingState, event: event)
     }
     
     private func run(state: WaitState, event: Event) {
-        if self.running {
+        if self.performing {
             fatalError()
         }
         
@@ -109,11 +110,11 @@ public class FlowGraph<WaitState: Hashable, RunState: Hashable, Event> {
             fatalError()
         }
         
-        self.running = true
+        self.performing = true
         
         let next = handler(event)
         
-        self.running = false
+        self.performing = false
         
         switch next {
         case .run(let state, let event):
@@ -127,7 +128,7 @@ public class FlowGraph<WaitState: Hashable, RunState: Hashable, Event> {
     }
     
     private func run(state: RunState, event: Event) {
-        if self.running {
+        if self.performing {
             fatalError()
         }
         
@@ -135,11 +136,11 @@ public class FlowGraph<WaitState: Hashable, RunState: Hashable, Event> {
             fatalError()
         }
         
-        self.running = true
+        self.performing = true
         
         let next = handler(event)
         
-        self.running = false
+        self.performing = false
         
         switch next {
         case .run(let state, let event):
