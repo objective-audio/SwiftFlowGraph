@@ -93,11 +93,11 @@ public class FlowGraph<WaitState: Hashable, RunState: Hashable, Event> {
     }
     
     public func run(_ event: Event) {
-        guard case .waiting(let waitState) = self.state else {
+        guard case .waiting(let waitingState) = self.state else {
             fatalError()
         }
         
-        self.run(state: waitState, event: event)
+        self.run(state: waitingState, event: event)
     }
     
     private func run(state: WaitState, event: Event) {
