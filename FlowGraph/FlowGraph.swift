@@ -49,7 +49,7 @@ public class FlowGraph<Waiting: Hashable, Running: Hashable, Event> {
         return runner.state
     }
     
-    init() {
+    public init() {
         self.core = .builder(FlowGraphBuilder<Waiting, Running, Event>())
     }
     
