@@ -18,9 +18,9 @@ final class FlowGraphTests: XCTestCase {
             case bang
         }
         
-        let builder = FlowGraphBuilder<WaitingState, RunningState, Event>()
+        let graph = FlowGraph<WaitingState, RunningState, Event>()
         
-        builder.add(waiting: .begin) { event in
+        graph.add(waiting: .begin) { event in
             switch event {
             case .value(let value):
                 if value == 0 {
@@ -33,7 +33,7 @@ final class FlowGraphTests: XCTestCase {
             }
         }
         
-        builder.add(waiting: .zero) { event in
+        graph.add(waiting: .zero) { event in
             switch event {
             case .bang:
                 return .wait(.begin)
@@ -42,19 +42,19 @@ final class FlowGraphTests: XCTestCase {
             }
         }
         
-        builder.add(running: .nonZero) { event in
+        graph.add(running: .nonZero) { event in
             return .wait(.begin)
         }
         
         for state in WaitingState.cases {
-            XCTAssertTrue(builder.contains(state: .waiting(state)))
+            XCTAssertTrue(graph.contains(state: .waiting(state)))
         }
         
         for state in RunningState.cases {
-            XCTAssertTrue(builder.contains(state: .running(state)))
+            XCTAssertTrue(graph.contains(state: .running(state)))
         }
         
-        let graph = builder.build(initial: .begin)
+        graph.begin(with: .begin)
         
         XCTAssertEqual(graph.state, .waiting(.begin))
         
@@ -86,15 +86,15 @@ final class FlowGraphTests: XCTestCase {
             case second
         }
         
-        let builder = FlowGraphBuilder<WaitingState, RunningState, Int>()
+        let graph = FlowGraph<WaitingState, RunningState, Int>()
         
-        builder.add(waiting: .first) { _ in .stay }
-        builder.add(running: .second) { _ in .wait(.first) }
+        graph.add(waiting: .first) { _ in .stay }
+        graph.add(running: .second) { _ in .wait(.first) }
         
-        XCTAssertTrue(builder.contains(state: .waiting(.first)))
-        XCTAssertFalse(builder.contains(state: .waiting(.second)))
-        XCTAssertFalse(builder.contains(state: .running(.first)))
-        XCTAssertTrue(builder.contains(state: .running(.second)))
+        XCTAssertTrue(graph.contains(state: .waiting(.first)))
+        XCTAssertFalse(graph.contains(state: .waiting(.second)))
+        XCTAssertFalse(graph.contains(state: .running(.first)))
+        XCTAssertTrue(graph.contains(state: .running(.second)))
     }
     
     static var allTests = [
