@@ -55,35 +55,35 @@ public class FlowGraph<Waiting: Hashable, Running: Hashable, Event> {
     
     public func add(waiting state: Waiting, handler: @escaping WaitingHandler) {
         guard case .builder(let builder) = self.core else {
-            fatalError()
+            fatalError("can't add state when running.")
         }
         builder.add(waiting: state, handler: handler)
     }
     
     public func add(running state: Running, handler: @escaping RunningHandler) {
         guard case .builder(let builder) = self.core else {
-            fatalError()
+            fatalError("can't add state when running.")
         }
         builder.add(running: state, handler: handler)
     }
     
     public func contains(state: State) -> Bool {
         guard case .builder(let builder) = self.core else {
-            fatalError()
+            fatalError("can't get contains while running.")
         }
         return builder.contains(state: state)
     }
     
     public func begin(with initial: Waiting) {
         guard case .builder(let builder) = self.core else {
-            fatalError()
+            fatalError("can't begin while running.")
         }
         self.core = .runner(builder.build(initial: initial))
     }
     
     public func run(_ event: Event) {
         guard case .runner(let runner) = self.core else {
-            fatalError()
+            fatalError("can't add event when building.")
         }
         runner.run(event)
     }
@@ -99,7 +99,7 @@ fileprivate class FlowGraphBuilder<WaitingState: Hashable, RunningState: Hashabl
     
     fileprivate func add(waiting state: WaitingState, handler: @escaping T.WaitingHandler) {
         if self.waitingHandlers[state] != nil {
-            fatalError()
+            fatalError("\(state) already exists.")
         }
         
         self.waitingHandlers[state] = handler
@@ -107,7 +107,7 @@ fileprivate class FlowGraphBuilder<WaitingState: Hashable, RunningState: Hashabl
     
     fileprivate func add(running state: RunningState, handler: @escaping T.RunningHandler) {
         if self.runningHandlers[state] != nil {
-            fatalError()
+            fatalError("\(state) already exists.")
         }
     
         self.runningHandlers[state] = handler
@@ -160,11 +160,11 @@ fileprivate class FlowGraphRunner<WaitingState: Hashable, RunningState: Hashable
     
     private func run(waiting state: WaitingState, event: Event) {
         if self.performing {
-            fatalError()
+            fatalError("performing.")
         }
         
         guard let handler = self.waitingHandlers[state] else {
-            fatalError()
+            fatalError("\(state) not found.")
         }
         
         self.performing = true
@@ -186,11 +186,11 @@ fileprivate class FlowGraphRunner<WaitingState: Hashable, RunningState: Hashable
     
     private func run(running state: RunningState, event: Event) {
         if self.performing {
-            fatalError()
+            fatalError("performing.")
         }
         
         guard let handler = self.runningHandlers[state] else {
-            fatalError()
+            fatalError("\(state) not found.")
         }
         
         self.performing = true
