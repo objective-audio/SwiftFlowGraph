@@ -84,7 +84,6 @@ public class FlowGraphRunner<Event> {
 
 public class FlowGraph<WaitingState: Hashable, RunningState: Hashable, Event>: FlowGraphRunner<Event> {
     public typealias T = FlowGraphType<WaitingState, RunningState, Event>
-    public typealias Builder = FlowGraphBuilder<WaitingState, RunningState, Event>
     
     public private(set) var state: T.State
     private var waitingHandlers: [WaitingState: T.WaitingHandler] = [:]
