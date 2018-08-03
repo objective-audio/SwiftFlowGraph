@@ -134,7 +134,6 @@ fileprivate class FlowGraphBuilder<WaitingState: Hashable, RunningState: Hashabl
 
 fileprivate class FlowGraphRunner<WaitingState: Hashable, RunningState: Hashable, Event> {
     fileprivate typealias T = FlowGraph<WaitingState, RunningState, Event>
-    fileprivate typealias Builder = FlowGraphBuilder<WaitingState, RunningState, Event>
     
     fileprivate private(set) var state: T.State
     private var waitingHandlers: [WaitingState: T.WaitingHandler]
