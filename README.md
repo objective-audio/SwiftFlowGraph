@@ -24,7 +24,7 @@ import PackageDescription
 let package = Package(
     name: "Sample",
     dependencies: [
-        .package(url: "https://github.com/objective-audio/SwiftFlowGraph.git", from: "0.3.0")
+        .package(url: "https://github.com/objective-audio/SwiftFlowGraph.git", from: "0.4.0")
     ],
     targets: [
         .target(
@@ -46,27 +46,33 @@ class Door {
         }
     }
 
-    private enum WaitingState {
-        case closed
-        case opened
-    }
-
-    private enum RunningState {
-        case opening
-        case closing
-    }
-
     enum EventKind {
         case open
         case close
     }
 
-    private typealias Event = (kind: EventKind, object: Door)
+    typealias Event = (kind: EventKind, object: Door)
 
-    private let graph = FlowGraph<WaitingState, RunningState, Event>()
+    private struct GraphType: FlowGraphType {
+        enum WaitingState {
+            case closed
+            case opened
+        }
+
+        enum RunningState {
+            case opening
+            case closing
+        }
+
+        typealias Event = Door.Event
+    }
+
+    private var graph: FlowGraph<GraphType>
 
     init() {
-        self.graph.add(waiting: .closed) { event in
+        let builder = FlowGraphBuilder<GraphType>()
+
+        builder.add(waiting: .closed) { event in
             if case .open = event.kind {
                 return .run(.opening, event)
             } else {
@@ -74,7 +80,7 @@ class Door {
             }
         }
 
-        self.graph.add(waiting: .opened) { event in
+        builder.add(waiting: .opened) { event in
             if case .close = event.kind {
                 return .run(.closing, event)
             } else {
@@ -82,17 +88,17 @@ class Door {
             }
         }
 
-        self.graph.add(running: .opening) { event in
+        builder.add(running: .opening) { event in
             event.object.isOpen = true
             return .wait(.opened)
         }
 
-        self.graph.add(running: .closing) { event in
+        builder.add(running: .closing) { event in
             event.object.isOpen = false
             return .wait(.closed)
         }
 
-        self.graph.begin(with: .closed)
+        self.graph = builder.build(initial: .closed)
     }
 
     func run(_ kind: EventKind) {
