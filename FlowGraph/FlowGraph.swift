@@ -76,7 +76,13 @@ public class FlowGraphBuilder<WaitingState: Hashable, RunningState: Hashable, Ev
     }
 }
 
-public class FlowGraph<WaitingState: Hashable, RunningState: Hashable, Event> {
+public class FlowGraphRunner<Event> {
+    public func run(_ event: Event) {
+        fatalError()
+    }
+}
+
+public class FlowGraph<WaitingState: Hashable, RunningState: Hashable, Event>: FlowGraphRunner<Event> {
     public typealias T = FlowGraphType<WaitingState, RunningState, Event>
     public typealias Builder = FlowGraphBuilder<WaitingState, RunningState, Event>
     
@@ -93,7 +99,7 @@ public class FlowGraph<WaitingState: Hashable, RunningState: Hashable, Event> {
         self.runningHandlers = runningHandlers
     }
     
-    public func run(_ event: Event) {
+    override public func run(_ event: Event) {
         guard case .waiting(let waitingState) = self.state else {
             print("Ignored an event because state is runnning.")
             return

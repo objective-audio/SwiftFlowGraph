@@ -97,6 +97,31 @@ final class FlowGraphTests: XCTestCase {
         XCTAssertTrue(builder.contains(state: .running(.second)))
     }
     
+    func testRunner() {
+        enum WaitingState {
+            case some
+        }
+        
+        enum RunningState {
+            case some
+        }
+        
+        let builder = FlowGraphBuilder<WaitingState, RunningState, Int>()
+        
+        var received: Int?
+        
+        builder.add(waiting: .some) { event in
+            received = event
+            return .stay
+        }
+        
+        let graph: FlowGraphRunner<Int> = builder.build(initial: .some)
+        
+        graph.run(1)
+        
+        XCTAssertEqual(received, 1)
+    }
+    
     static var allTests = [
         ("testFlow", testFlow),
         ("testContains", testContains),
