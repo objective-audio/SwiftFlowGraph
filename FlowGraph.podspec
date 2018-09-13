@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name          = 'FlowGraph'
-  s.version       = '0.4.0'
+  s.version       = '0.5.0'
   s.summary       = 'Simple State Machine for Swift'
   s.homepage      = 'https://github.com/objective-audio/SwiftFlowGraph'
   s.license       = { :type => 'MIT' }
