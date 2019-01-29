@@ -4,12 +4,12 @@ import XCTest
 final class FlowGraphTests: XCTestCase {
     func testFlow() {
         struct TestType: FlowGraphType {
-            enum WaitingState: EnumEnumerable {
+            enum WaitingState: CaseIterable {
                 case begin
                 case zero
             }
             
-            enum RunningState: EnumEnumerable {
+            enum RunningState: CaseIterable {
                 case nonZero
             }
             
@@ -48,13 +48,8 @@ final class FlowGraphTests: XCTestCase {
             return .wait(.begin)
         }
         
-        for state in TestType.WaitingState.cases {
-            XCTAssertTrue(builder.contains(state: .waiting(state)))
-        }
-        
-        for state in TestType.RunningState.cases {
-            XCTAssertTrue(builder.contains(state: .running(state)))
-        }
+        XCTAssertTrue(TestType.WaitingState.allCases.allSatisfy { builder.contains(state: .waiting($0)) })
+        XCTAssertTrue(TestType.RunningState.allCases.allSatisfy { builder.contains(state: .running($0)) })
         
         let graph = builder.build(initial: .begin)
         
