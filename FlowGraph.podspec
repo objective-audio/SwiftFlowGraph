@@ -10,5 +10,5 @@ Pod::Spec.new do |s|
   s.requires_arc  = true
   s.source        = { :git => 'https://github.com/objective-audio/SwiftFlowGraph.git', :tag => s.version.to_s }
   s.source_files  = 'FlowGraph/*.swift'
-  s.swift_version = '4.2'
+  s.swift_version = '5.0'
 end
