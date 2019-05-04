@@ -98,8 +98,74 @@ final class FlowGraphTests: XCTestCase {
         XCTAssertTrue(builder.contains(state: .running(.second)))
     }
     
+    func testSubFlow() {
+        struct GraphType: FlowGraphType {
+            enum WaitingState: CaseIterable {
+                case disabled
+                case enabled
+            }
+            
+            enum RunningState: CaseIterable {
+                case void
+            }
+            
+            enum Event {
+                case enable
+                case disable
+            }
+        }
+        
+        struct SubFlow: Instantiatable {
+            static func instantiate() -> SubFlow {
+                return SubFlow()
+            }
+            
+            func canDisable() -> Bool {
+                return true
+            }
+        }
+        
+        let builder = FlowGraphBuilder<GraphType>()
+        
+        builder.add(waiting: .disabled) { event in
+            switch event {
+            case .enable:
+                return .wait(.enabled)
+            case .disable:
+                return .stay
+            }
+        }
+        
+        builder.add(waiting: .enabled, subFlowType: SubFlow.self) { (event, subFlow) in
+            switch event {
+            case .enable:
+                return .stay
+            case .disable:
+                if subFlow.canDisable() {
+                    return .wait(.disabled)
+                } else {
+                    return .stay
+                }
+            }
+        }
+        
+        let mainGraph = builder.build(initial: .disabled)
+        
+        XCTAssertEqual(mainGraph.state, .waiting(.disabled))
+        
+        mainGraph.run(.enable)
+        
+        XCTAssertEqual(mainGraph.state, .waiting(.enabled))
+        
+        mainGraph.run(.disable)
+        
+        XCTAssertEqual(mainGraph.state, .waiting(.disabled))
+    }
+    
     static var allTests = [
         ("testFlow", testFlow),
         ("testContains", testContains),
     ]
 }
+
+
