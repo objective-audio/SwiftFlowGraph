@@ -162,19 +162,22 @@ public class FlowGraph<T: FlowGraphType> {
         case .wait(let state):
             if self.state != .waiting(state) {
                 self.subFlow = nil
-                
-                self.state = .waiting(state)
-                
-                guard let nextWaiting = self.waitings[state] else {
-                    fatalError()
-                }
-                
-                if case .subFlow(let type, _) = nextWaiting {
-                    self.subFlow = type.init()
-                }
+                self.wait(waiting: state)
             }
         case .stay:
             break
+        }
+    }
+    
+    private func wait(waiting state: T.WaitingState) {
+        self.state = .waiting(state)
+        
+        guard let nextWaiting = self.waitings[state] else {
+            fatalError()
+        }
+        
+        if case .subFlow(let type, _) = nextWaiting {
+            self.subFlow = type.init()
         }
     }
     
@@ -198,7 +201,7 @@ public class FlowGraph<T: FlowGraphType> {
             self.state = .running(state)
             self.run(running: state, event: event)
         case .wait(let state):
-            self.state = .waiting(state)
+            self.wait(waiting: state)
         }
     }
 }

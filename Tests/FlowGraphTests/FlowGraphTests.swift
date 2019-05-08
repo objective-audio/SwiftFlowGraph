@@ -106,12 +106,13 @@ final class FlowGraphTests: XCTestCase {
             }
             
             enum RunningState: CaseIterable {
-                case void
+                case reload
             }
             
             enum Event {
                 case enable
                 case disable
+                case reload
             }
         }
         
@@ -133,7 +134,7 @@ final class FlowGraphTests: XCTestCase {
             switch event {
             case .enable:
                 return .wait(.enabled)
-            case .disable:
+            case .disable, .reload:
                 return .stay
             }
         }
@@ -148,7 +149,13 @@ final class FlowGraphTests: XCTestCase {
                 } else {
                     return .stay
                 }
+            case .reload:
+                return .run(.reload, event)
             }
+        }
+        
+        builder.add(running: .reload) { event in
+            return .wait(.enabled)
         }
         
         let mainGraph = builder.build(initial: .disabled)
@@ -163,8 +170,16 @@ final class FlowGraphTests: XCTestCase {
         
         XCTAssertEqual(mainGraph.state, .waiting(.enabled))
         
-        mainGraph.run(.disable)
+        mainGraph.run(.reload)
         
+        XCTAssertEqual(mainGraph.state, .waiting(.enabled))
+        
+        mainGraph.run(.disable)
+
+        XCTAssertEqual(mainGraph.state, .waiting(.enabled))
+
+        mainGraph.run(.disable)
+
         XCTAssertEqual(mainGraph.state, .waiting(.disabled))
     }
     
