@@ -115,13 +115,15 @@ final class FlowGraphTests: XCTestCase {
             }
         }
         
-        struct SubFlow: Instantiatable {
-            static func instantiate() -> SubFlow {
-                return SubFlow()
+        class SubFlow: Initializable {
+            private var count: Int = 0
+            
+            required init() {
             }
             
-            func canDisable() -> Bool {
-                return true
+            func increment() -> Bool {
+                self.count += 1
+                return self.count >= 2
             }
         }
         
@@ -141,7 +143,7 @@ final class FlowGraphTests: XCTestCase {
             case .enable:
                 return .stay
             case .disable:
-                if subFlow.canDisable() {
+                if subFlow.increment() {
                     return .wait(.disabled)
                 } else {
                     return .stay
@@ -154,6 +156,10 @@ final class FlowGraphTests: XCTestCase {
         XCTAssertEqual(mainGraph.state, .waiting(.disabled))
         
         mainGraph.run(.enable)
+        
+        XCTAssertEqual(mainGraph.state, .waiting(.enabled))
+        
+        mainGraph.run(.disable)
         
         XCTAssertEqual(mainGraph.state, .waiting(.enabled))
         
