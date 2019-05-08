@@ -115,11 +115,7 @@ final class FlowGraphTests: XCTestCase {
             }
         }
         
-        struct SubFlow: Instantiatable {
-            static func instantiate() -> SubFlow {
-                return SubFlow()
-            }
-            
+        struct SubFlow: Initializable {
             func canDisable() -> Bool {
                 return true
             }

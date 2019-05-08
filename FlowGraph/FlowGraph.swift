@@ -42,15 +42,15 @@ public enum RunningStateOut<WaitingState: Hashable, RunningState: Hashable, Even
     case wait(WaitingState)
 }
 
-public protocol Instantiatable {
-    static func instantiate() -> Self
+public protocol Initializable {
+    init()
 }
 
 fileprivate typealias WaitingAnyHandler<T: FlowGraphType> = (T.Event, Any) -> WaitingStateOut<T.WaitingState, T.RunningState, T.Event>
 
 fileprivate enum Waiting<T: FlowGraphType> {
     case normal(T.WaitingHandler)
-    case subFlow(Instantiatable.Type, WaitingAnyHandler<T>)
+    case subFlow(Initializable.Type, WaitingAnyHandler<T>)
 }
 
 public class FlowGraphBuilder<T: FlowGraphType> {
@@ -67,9 +67,9 @@ public class FlowGraphBuilder<T: FlowGraphType> {
         self.waitings[state] = .normal(handler)
     }
     
-    public func add<SubFlow: Instantiatable>(waiting state: T.WaitingState,
-                                             subFlowType: SubFlow.Type,
-                                             handler: @escaping T.WaitingFlowHandler<SubFlow>) {
+    public func add<SubFlow: Initializable>(waiting state: T.WaitingState,
+                                            subFlowType: SubFlow.Type,
+                                            handler: @escaping T.WaitingFlowHandler<SubFlow>) {
         if self.waitings[state] != nil {
             fatalError()
         }
@@ -167,7 +167,7 @@ public class FlowGraph<T: FlowGraphType> {
                 }
                 
                 if case .subFlow(let type, _) = nextWaiting {
-                    self.subFlow = type.instantiate()
+                    self.subFlow = type.init()
                 } else {
                     self.subFlow = nil
                 }
