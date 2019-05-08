@@ -156,10 +156,13 @@ public class FlowGraph<T: FlowGraphType> {
         
         switch next {
         case .run(let state, let event):
+            self.subFlow = nil
             self.state = .running(state)
             self.run(running: state, event: event)
         case .wait(let state):
             if self.state != .waiting(state) {
+                self.subFlow = nil
+                
                 self.state = .waiting(state)
                 
                 guard let nextWaiting = self.waitings[state] else {
@@ -168,8 +171,6 @@ public class FlowGraph<T: FlowGraphType> {
                 
                 if case .subFlow(let type, _) = nextWaiting {
                     self.subFlow = type.init()
-                } else {
-                    self.subFlow = nil
                 }
             }
         case .stay:
