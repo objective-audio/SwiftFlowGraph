@@ -106,16 +106,17 @@ final class FlowGraphTests: XCTestCase {
             }
             
             enum RunningState: CaseIterable {
-                case reload
+                case reset
             }
             
             enum Event {
                 case enable
                 case disable
-                case reload
+                case reset
             }
         }
         
+        // 2回以上incrementが呼ばれるとtrueを返す
         class SubFlow: Initializable {
             private var count: Int = 0
             
@@ -134,7 +135,7 @@ final class FlowGraphTests: XCTestCase {
             switch event {
             case .enable:
                 return .wait(.enabled)
-            case .disable, .reload:
+            case .disable, .reset:
                 return .stay
             }
         }
@@ -144,17 +145,18 @@ final class FlowGraphTests: XCTestCase {
             case .enable:
                 return .stay
             case .disable:
+                // SubFlowのcountが2以上だったら遷移する
                 if subFlow.increment() {
                     return .wait(.disabled)
                 } else {
                     return .stay
                 }
-            case .reload:
-                return .run(.reload, event)
+            case .reset:
+                return .run(.reset, event)
             }
         }
         
-        builder.add(running: .reload) { event in
+        builder.add(running: .reset) { event in
             return .wait(.enabled)
         }
         
@@ -170,7 +172,9 @@ final class FlowGraphTests: XCTestCase {
         
         XCTAssertEqual(mainGraph.state, .waiting(.enabled))
         
-        mainGraph.run(.reload)
+        mainGraph.run(.reset)
+        
+        // runningステートを通ってSubFlowがリセットされた
         
         XCTAssertEqual(mainGraph.state, .waiting(.enabled))
         
@@ -180,6 +184,20 @@ final class FlowGraphTests: XCTestCase {
 
         mainGraph.run(.disable)
 
+        XCTAssertEqual(mainGraph.state, .waiting(.disabled))
+        
+        mainGraph.run(.enable)
+        
+        // 別のwaitingステートから遷移したのでSubFlowがリセットされた
+        
+        XCTAssertEqual(mainGraph.state, .waiting(.enabled))
+        
+        mainGraph.run(.disable)
+        
+        XCTAssertEqual(mainGraph.state, .waiting(.enabled))
+        
+        mainGraph.run(.disable)
+        
         XCTAssertEqual(mainGraph.state, .waiting(.disabled))
     }
     
