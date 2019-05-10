@@ -115,9 +115,10 @@ public class FlowGraph<T: FlowGraphType> {
     fileprivate init(initial: T.WaitingState,
                      waitings: [T.WaitingState: Waiting<T>],
                      runningHandlers: [T.RunningState: T.RunningHandler]) {
-        self.state = .waiting(initial)
         self.waitings = waitings
         self.runningHandlers = runningHandlers
+        self.state = .waiting(initial)
+        self.setupSubFlow(waiting: initial)
     }
     
     public func run(_ event: T.Event) {
@@ -162,16 +163,15 @@ public class FlowGraph<T: FlowGraphType> {
         case .wait(let state):
             if self.state != .waiting(state) {
                 self.subFlow = nil
-                self.wait(waiting: state)
+                self.state = .waiting(state)
+                self.setupSubFlow(waiting: state)
             }
         case .stay:
             break
         }
     }
     
-    private func wait(waiting state: T.WaitingState) {
-        self.state = .waiting(state)
-        
+    private func setupSubFlow(waiting state: T.WaitingState) {
         guard let nextWaiting = self.waitings[state] else {
             fatalError()
         }
@@ -201,7 +201,8 @@ public class FlowGraph<T: FlowGraphType> {
             self.state = .running(state)
             self.run(running: state, event: event)
         case .wait(let state):
-            self.wait(waiting: state)
+            self.state = .waiting(state)
+            self.setupSubFlow(waiting: state)
         }
     }
 }
