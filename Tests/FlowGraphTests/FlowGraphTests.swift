@@ -201,6 +201,85 @@ final class FlowGraphTests: XCTestCase {
         XCTAssertEqual(mainGraph.state, .waiting(.disabled))
     }
     
+    func testManySubFlow() {
+        struct GraphType: FlowGraphType {
+            enum WaitingState: CaseIterable {
+                case first
+                case second
+            }
+            
+            enum RunningState: CaseIterable {
+                case none
+            }
+            
+            enum Event {
+                case bang
+            }
+        }
+        
+        class FirstSubFlow: Initializable {
+            private var count: Int = 0
+            
+            required init() {}
+            
+            func increment() -> Bool {
+                self.count += 1
+                return self.count >= 2
+            }
+        }
+        
+        class SecondSubFlow: Initializable {
+            private var count: Int = 0
+            
+            required init() {}
+            
+            func increment() -> Bool {
+                self.count += 1
+                return self.count >= 3
+            }
+        }
+        
+        let builder = FlowGraphBuilder<GraphType>();
+        
+        builder.add(waiting: .first, subFlowType: FirstSubFlow.self) { event, subFlow in
+            return subFlow.increment() ? .wait(.second) : .stay
+        }
+        
+        builder.add(waiting: .second, subFlowType: SecondSubFlow.self) { event, subFlow in
+            return subFlow.increment() ? .wait(.first) : .stay
+        }
+        
+        let graph = builder.build(initial: .first)
+        
+        graph.run(.bang)
+        
+        XCTAssertEqual(graph.state, .waiting(.first))
+        
+        graph.run(.bang)
+        
+        XCTAssertEqual(graph.state, .waiting(.second))
+        
+        graph.run(.bang)
+        
+        XCTAssertEqual(graph.state, .waiting(.second))
+        
+        graph.run(.bang)
+        
+        XCTAssertEqual(graph.state, .waiting(.second))
+        
+        graph.run(.bang)
+        
+        XCTAssertEqual(graph.state, .waiting(.first))
+        
+        graph.run(.bang)
+        
+        XCTAssertEqual(graph.state, .waiting(.first))
+        
+        graph.run(.bang)
+        
+        XCTAssertEqual(graph.state, .waiting(.second))
+    }
+    
     static var allTests = [
         ("testFlow", testFlow),
         ("testContains", testContains),
