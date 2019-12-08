@@ -13,6 +13,7 @@ public protocol FlowGraphType {
     typealias WaitingFlowHandler<Flow> = (Event, Flow) -> WaitingStateOut<WaitingState, RunningState, Event>
     typealias RunningHandler = (Event) -> RunningStateOut<WaitingState, RunningState, Event>
     typealias State = FlowGraphState<WaitingState, RunningState>
+    typealias DebugHandler = (_ next: State, _ prev: State) -> Void
 }
 
 public enum FlowGraphState<WaitingState: Hashable, RunningState: Hashable>: Equatable {
@@ -111,6 +112,7 @@ public class FlowGraph<T: FlowGraphType> {
     private var subFlow: Any?
     private var runningHandlers: [T.RunningState: T.RunningHandler] = [:]
     private var performing = false;
+    private var debugHandler: T.DebugHandler?
     
     fileprivate init(initial: T.WaitingState,
                      waitings: [T.WaitingState: Waiting<T>],
@@ -130,12 +132,20 @@ public class FlowGraph<T: FlowGraphType> {
         self.run(waiting: waitingState, event: event)
     }
     
-    private func run(waiting state: T.WaitingState, event: T.Event) {
+    public func activateDebugging(_ handler: @escaping T.DebugHandler) {
+        self.debugHandler = handler
+    }
+    
+    public func deactivateDebugging() {
+        self.debugHandler = nil
+    }
+    
+    private func run(waiting currentState: T.WaitingState, event: T.Event) {
         if self.performing {
             fatalError()
         }
         
-        guard let waiting = self.waitings[state] else {
+        guard let waiting = self.waitings[currentState] else {
             fatalError()
         }
         
@@ -153,18 +163,31 @@ public class FlowGraph<T: FlowGraphType> {
             next = handler(event, subFlow)
         }
         
+        if let debugHandler = self.debugHandler {
+            switch next {
+            case .run(let nextState, _):
+                debugHandler(.running(nextState), .waiting(currentState))
+            case .wait(let nextState):
+                if self.state != .waiting(nextState) {
+                    debugHandler(.waiting(nextState), .waiting(currentState))
+                }
+            case .stay:
+                break
+            }
+        }
+        
         self.performing = false
         
         switch next {
-        case .run(let state, let event):
+        case .run(let nextState, let event):
             self.subFlow = nil
-            self.state = .running(state)
-            self.run(running: state, event: event)
-        case .wait(let state):
-            if self.state != .waiting(state) {
+            self.state = .running(nextState)
+            self.run(running: nextState, event: event)
+        case .wait(let nextState):
+            if self.state != .waiting(nextState) {
                 self.subFlow = nil
-                self.state = .waiting(state)
-                self.setupSubFlow(waiting: state)
+                self.state = .waiting(nextState)
+                self.setupSubFlow(waiting: nextState)
             }
         case .stay:
             break
@@ -181,18 +204,27 @@ public class FlowGraph<T: FlowGraphType> {
         }
     }
     
-    private func run(running state: T.RunningState, event: T.Event) {
+    private func run(running currentState: T.RunningState, event: T.Event) {
         if self.performing {
             fatalError()
         }
         
-        guard let handler = self.runningHandlers[state] else {
+        guard let handler = self.runningHandlers[currentState] else {
             fatalError()
         }
         
         self.performing = true
         
         let next = handler(event)
+        
+        if let debugHandler = self.debugHandler {
+            switch next {
+            case .run(let nextState, _):
+                debugHandler(.running(nextState), .running(currentState))
+            case .wait(let nextState):
+                debugHandler(.waiting(nextState), .running(currentState))
+            }
+        }
         
         self.performing = false
         
