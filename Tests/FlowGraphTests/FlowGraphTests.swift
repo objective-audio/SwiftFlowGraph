@@ -341,7 +341,7 @@ final class FlowGraphTests: XCTestCase {
         XCTAssertEqual(received.count, 3)
     }
     
-    static var allTests = [
+    static let allTests = [
         ("testFlow", testFlow),
         ("testContains", testContains),
         ("testDebugHandler", testDebugHandler),
