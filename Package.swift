@@ -10,7 +10,7 @@ let package = Package(
     dependencies: [
     ],
     targets: [
-        .target(name: "FlowGraph", dependencies: [], path: "FlowGraph"),
+        .target(name: "FlowGraph", dependencies: []),
         .testTarget(name: "FlowGraphTests", dependencies: ["FlowGraph"]),
     ]
 )
