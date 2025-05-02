@@ -1,4 +1,4 @@
-// swift-tools-version:4.0
+// swift-tools-version:6.1
 
 import PackageDescription
 
@@ -10,7 +10,7 @@ let package = Package(
     dependencies: [
     ],
     targets: [
-        .target(name: "FlowGraph", dependencies: [], path: "FlowGraph"),
+        .target(name: "FlowGraph", dependencies: []),
         .testTarget(name: "FlowGraphTests", dependencies: ["FlowGraph"]),
     ]
 )
